@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+<title>Eplan BOM
+</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.14.5/xlsx.full.min.js">
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js">
+</script>
+<script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js">
+</script>
+</head>
+
+<body><h1 style="text-align:center">BOM EPLAN</h1>
+
+<div class="conatiner mt-5" style="text-align:center">
+
+<form id="form">
+
+<div class="col-md-5">
+<label for="input"><b>Elija archivo de Eplan:</b>
+</label> 
+<input type="file" id="input" accept=".xls,.xlsx" required>
+</div>
+<br>
+<br>
+
+<div class="col-md-5">
+<label for="fileName"><b>Nombre del Archivo:</b>
+</label> 
+<input type="text" id="fileName" name="fileName" required> <button class="btn btn-primary" id="buttonCreate">Convertir</button>
+</div>
+</form>
+</div>
+</body>
+</html>
+
+<script>
+    $(document).ready(function () {
+        var a, b;
+        $("#input").on("change", function (e) {
+            var c = e.target.files[0];
+            if (c) {
+                var d = new FileReader();
+                (d.onload = function (b) {
+                    var c = new Uint8Array(b.target.result),
+                        a = XLSX.read(c, { type: "array" }),
+                        d = a.Sheets[a.SheetNames[0]];
+                    f(XLSX.utils.sheet_to_json(d, { header: 1 }));
+                }),
+                    d.readAsArrayBuffer(c);
+            }
+            function f(d) {
+                var k = !1,
+                    l = 0,
+                    r = 0,
+                    i = 0,
+                    p = 0,
+                    e = !1,
+                    j = !1,
+                    m = [],
+                    c = [];
+                for (let n = 0; n < d.length; n++)
+                    for (let f = 0; f < d[0].length; f++)
+                        (dataTemp = d[n][f]),
+                            0 == n &&
+                                ((dataTemp.includes("ERP number [1]") || dataTemp.includes("N\xfamero ERP [1]")) && (col_1st_art = f),
+                                (dataTemp.includes("ERP number [2]") || dataTemp.includes("N\xfamero ERP [2]")) && !k && ((i = f), (k = !0)),
+                                (dataTemp.includes("ERP number [3]") || dataTemp.includes("N\xfamero ERP [3]")) && !r && k && ((l = f - i), (r = !0)));
+                for (let g = 0; g < d.length; g++) {
+                    for (let h = 0; h < d[0].length; h++)
+                        if (((dataTemp = d[g][h]), 0 == g)) h < i && k && c.push(dataTemp);
+                        else if (g > 0) {
+                            if (h < i) c.push(dataTemp);
+                            else if (
+                                (c.length >= l + 3 + 1 && j && ((row_completed = !0), (j = !1)),
+                                c.length < l + 3 + 1 && !e && j && (c.push(dataTemp), (row_completed = !1)),
+                                "" == dataTemp || void 0 == dataTemp || e || j || (m.push(c), (c = []), (e = !0), (j = !0)),
+                                e)
+                            ) {
+                                p = (h - i + 1) % l;
+                                for (let q = 0; q < 4; q++) c.push(d[g][q]);
+                                for (let o = 0; o < p + 1; o++) o == p ? c.push(dataTemp) : o > 0 && c.push("");
+                                e = !1;
+                            }
+                        }
+                    m.push(c), (e = !1), (c = []);
+                }
+                (a = m[0]), (b = m), b.shift();
+            }
+        }),
+            $("#buttonCreate").click(function () {
+                if (($("#form").validate(), $("#form").valid())) {
+                    fileName = document.getElementById("fileName").value;
+                    let c = XLSX.utils.json_to_sheet(b),
+                        d = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(d, c, "Lista de Materiales"), XLSX.utils.sheet_add_aoa(c, [a], { origin: "A1" }), XLSX.writeFile(d, fileName + ".xlsb");
+                }
+            });
+    });
+</script>
